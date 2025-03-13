@@ -1,6 +1,6 @@
-
 import api from "../../utils/API";
 import { useMutation, useQuery } from "@tanstack/react-query";
+
 
 const searchGroup = async (searchText) => {
     if (!searchText || searchText.length < 2) return [];
@@ -15,11 +15,20 @@ const joinGroup = async ({ groupId, password }) => {
     return data;
 };
 
-const useGroups = (searchText) => {
+const useGroups = () => {
     return useQuery({
-        queryKey: ["searchGroup", searchText],
-        queryFn: () => searchGroup(searchText),
-        enabled: searchText.length > 1,
+        queryKey: ["groups"],
+        queryFn: async () => {
+            try {
+                const response = await api.get("/groups");
+                console.log("Groups API Response:", response.data);
+                return response.data || [];
+            } catch (error) {
+                console.error("Ошибка загрузки групп:", error);
+                return [];
+            }
+        },
+        select: (data) => data || [],
     });
 };
 

@@ -38,6 +38,7 @@ const Header = () => {
             <header>
                 <h1>Useful Product List</h1>
                 <div>
+
                     <Input
                         placeholder="Search groups..."
                         className="input"
@@ -45,6 +46,7 @@ const Header = () => {
                         onChange={(e) => setSearchTerm(e.target.value)}
                         allowClear
                         enterButton="Search"
+
                     />
 
                     {isLoading ? (
