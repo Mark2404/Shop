@@ -3,6 +3,7 @@ import { RxExit } from "react-icons/rx";
 import { Modal, Input, Button, message } from "antd";
 import { logout } from "../../utils/API";
 import { useGroups, useJoinGroup } from "../hooks/groupsData";
+
 import "./index.scss";
 
 const Header = () => {
@@ -36,31 +37,37 @@ const Header = () => {
         <div className="header">
             <header>
                 <h1>Useful Product List</h1>
-                <Input
-                    placeholder="Search..."
-                    className="input"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    allowClear
-                />
-                {isLoading ? (
-                    <p>Loading...</p>
-                ) : isError ? (
-                    <p className="error">Error loading groups</p>
-                ) : Array.isArray(groups) && groups.length > 0 ? (
-                    <ul>
-                        {groups?.map((group) => (
-                            <li key={group.id} className="group">
-                                <h4>{group.name}</h4>
-                                <Button type="primary" onClick={() => openJoinModal(group)}>
-                                    Join
-                                </Button>
-                            </li>
-                        ))}
-                    </ul>
-                ) : (
-                    <p className="no-results">No groups found</p>
-                )}
+                <div>
+                    <Input
+                        placeholder="Search groups..."
+                        className="input"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        allowClear
+                        enterButton="Search"
+                    />
+
+                    {isLoading ? (
+                        <p>Loading...</p>
+                    ) : isError ? (
+                        <p className="error">Error loading groups</p>
+                    ) : Array.isArray(groups) && groups.length > 0 ? (
+                        <ul className="groups-list">
+                            {groups.map((group) => (
+                                <li key={group.id}>
+                                    <div className="group">
+                                        <h4>{group.name}</h4>
+                                        <Button type="primary" onClick={() => openJoinModal(group)}>
+                                            Join
+                                        </Button>
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    ) : (searchTerm.trim() ? (
+                        <p className="no-results">No groups found</p>
+                    ) : null)}
+                </div>
 
 
                 <div className="exit-box" onClick={logout}>
