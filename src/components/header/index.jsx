@@ -1,82 +1,93 @@
-import React, { useState } from "react";
-import { RxExit } from "react-icons/rx";
-import { Modal, Input, Button, message } from "antd";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { FaSearch } from "react-icons/fa";
+import { Layout, Menu, Input, Button, Modal } from "antd";
+import { useSearchGroups } from "../hooks/groupsData";
 import { logout } from "../../utils/API";
-import { useGroups, useJoinGroup } from "../hooks/groupsData";
+import { RxExit } from "react-icons/rx";
 import "./index.scss";
 
-const Header = () => {
-    const [searchTerm, setSearchTerm] = useState("");
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedGroup, setSelectedGroup] = useState(null);
-    const [password, setPassword] = useState("");
+const { Header, Sider, Content } = Layout;
 
-    const { data: groups = [], isLoading, isError } = useGroups(searchTerm);
+const Home = () => {
+    const [searchText, setSearchTerm] = useState("");
+    const [groupResults, setGroupResults] = useState([]);
+    const { data: searchResults = [], isLoading } = useSearchGroups(searchTerm);
 
-    const joinGroupMutation = useJoinGroup();
-
-    const openJoinModal = (group) => {
-        setSelectedGroup(group);
-        setIsModalOpen(true);
+    const handleSearchChange = (e) => {
+        setSearchTerm(e.target.value);
     };
 
-    const handleJoinGroup = async () => {
-        if (!selectedGroup) return;
-        try {
-            await joinGroupMutation.mutateAsync({ groupId: selectedGroup.id, password });
-            message.success(`Successfully joined ${selectedGroup.name}!`);
-            setIsModalOpen(false);
-            setPassword("");
-        } catch (error) {
-            message.error("Failed to join group. Check the password.");
+    useEffect(() => {
+        if (searchResults) {
+            setGroupResults(searchResults);
         }
-    };
-    console.log(groups);
+    }, [searchResults]);
+
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (!localStorage.getItem("token")) {
+            navigate("/login");
+        }
+    }, [navigate]);
+
     return (
-        <div className="header">
-            <header>
-                <h1>Useful Product List</h1>
-                <Input
-                    placeholder="Search..."
-                    className="input"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    allowClear
+        <Layout>
+            <Sider collapsible>
+                <Menu
+                    theme="dark"
+                    defaultSelectedKeys={["1"]}
+                    mode="inline"
+                    items={[
+                        { key: "1", icon: <RxExit />, label: "Profile" },
+                        { key: "2", icon: <DesktopOutlined />, label: "Option 2" },
+                    ]}
+                    onClick={(e) => setSelectedKey(e.key)}
                 />
-                {isLoading ? (
-                    <p>Loading...</p>
-                ) : isError ? (
-                    <p className="error">Error loading groups</p>
-                ) : Array.isArray(groups) && groups.length > 0 ? (
-                    <ul>
-                        {groups?.map((group) => (
-                            <li key={group.id} className="group">
-                                <h4>{group.name}</h4>
-                                <Button type="primary" onClick={() => openJoinModal(group)}>
-                                    Join
-                                </Button>
-                            </li>
-                        ))}
-                    </ul>
-                ) : (
-                    <p className="no-results">No groups found</p>
-                )}
-
-
-                <div className="exit-box" onClick={logout}>
-                    <p>Log out</p>
-                    <RxExit className="exit-icon" />
-                </div>
-            </header>
-
+                <Button type="primary" icon={<RxExit />} onClick={logout}>
+                    Log out
+                </Button>
+            </Sider>
+            <Layout>
+                <Header>
+                    <div className="header">
+                        <Input
+                            placeholder="Search groups..."
+                            className="input"
+                            prefix={<FaSearch />}
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            allowClear
+                        />
+                    </div>
+                </Header>
+                <Content>
+                    <div style={{ padding: "20px" }}>
+                        {isLoading ? (
+                            <p>Loading groups...</p>
+                        ) : groupResults.length > 0 ? (
+                            <ul className="groups-list">
+                                {groupResults.map((group) => (
+                                    <li key={group.id}>
+                                        <h4>{group.name}</h4>
+                                        <Button type="primary" onClick={() => openJoinModal(group)}>
+                                            Join
+                                        </Button>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            searchTerm.trim() ? <p className="no-results">No groups found</p> : null
+                        )}
+                </Content>
+            </Layout>
             <Modal
                 title={`Join ${selectedGroup?.name}`}
                 open={isModalOpen}
                 onCancel={() => setIsModalOpen(false)}
                 footer={null}
-                className="custom-modal"
             >
-                <p>Enter group password:</p>
                 <Input.Password
                     placeholder="Password"
                     value={password}
@@ -86,8 +97,9 @@ const Header = () => {
                     Join Group
                 </Button>
             </Modal>
-        </div>
+        </Content>
+        </Layout >
     );
 };
 
-export default Header;
+export default Home;
