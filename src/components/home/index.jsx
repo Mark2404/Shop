@@ -5,7 +5,7 @@ import { Layout, Menu, theme, Button, Input, Modal } from "antd";
 import { FaShopify } from "react-icons/fa";
 import Header from "../header";
 import Profile from "../profile";
-import { useJoinGroup } from "../hooks/groupsData";
+import { useCreateGroup } from "../hooks/groupsData";
 
 const { Content, Sider } = Layout;
 import { Breadcrumb } from "antd";
@@ -15,9 +15,23 @@ const Home = () => {
     const [selectedKey, setSelectedKey] = useState("1");
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [groupName, setGroupName] = useState("");
-    const navigate = useNavigate();
-    const joinGroupMutation = useJoinGroup();
+    const createGroupMutation = useCreateGroup();
+    const [groupPassword, setGroupPassword] = useState("");
 
+    const navigate = useNavigate();
+
+
+
+    const handleAddGroup = async () => {
+        try {
+            await createGroupMutation.mutateAsync({ name: groupName, password: groupPassword });
+            setGroupName("");
+            setGroupPassword("");
+            setIsModalOpen(false);
+        } catch (error) {
+            console.error("Ошибка при создании группы:", error);
+        }
+    };
     useEffect(() => {
         if (!localStorage.getItem("token")) {
             navigate("/login");
@@ -48,15 +62,7 @@ const Home = () => {
         return <p>Select a menu item</p>;
     };
 
-    const handleAddGroup = async () => {
-        try {
-            await joinGroupMutation.mutateAsync({ groupId: groupName, password: "" });
-            setGroupName("");
-            setIsModalOpen(false);
-        } catch (error) {
-            console.error("Ошибка при добавлении группы:", error);
-        }
-    };
+
 
     return (
         <Layout style={{ minHeight: "100vh" }}>
@@ -113,6 +119,12 @@ const Home = () => {
                     placeholder="Enter group name"
                     value={groupName}
                     onChange={(e) => setGroupName(e.target.value)}
+                />
+                <Input.Password
+                    placeholder="Enter password"
+                    value={groupPassword}
+                    onChange={(e) => setGroupPassword(e.target.value)}
+                    style={{ marginTop: 10 }}
                 />
             </Modal>
         </Layout>

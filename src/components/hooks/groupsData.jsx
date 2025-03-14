@@ -2,6 +2,7 @@ import api from "../../utils/API";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
 
+
 const searchGroup = async (searchText) => {
     if (!searchText || searchText.length < 2) return [];
     const { data } = await api.get(`/groups/search?q=${searchText}`);
@@ -14,7 +15,26 @@ const joinGroup = async ({ groupId, password }) => {
     const { data } = await api.post(`/groups/${groupId}/join`, { password });
     return data;
 };
+const createGroup = async ({ name, password }) => {
+    if (!name || !password) throw new Error("Group name and password are required");
+    const { data } = await api.post("/groups", { name, password });
+    return data;
+};
 
+const useCreateGroup = () => {
+    return useMutation(createGroup);
+};
+const useSearchGroups = (searchText) => {
+    return useQuery({
+        queryKey: ["searchGroups", searchText],
+        queryFn: async () => {
+            if (!searchText || searchText.length < 2) return [];
+            const { data } = await api.get(`/groups/search?q=${searchText}`);
+            return data;
+        },
+        enabled: !!searchText && searchText.length >= 2,
+    });
+};
 const useGroups = () => {
     return useQuery({
         queryKey: ["groups"],
@@ -36,4 +56,4 @@ const useJoinGroup = () => {
     return useMutation(joinGroup);
 };
 
-export { useGroups, useJoinGroup };
+export { useGroups, useJoinGroup, useCreateGroup, searchGroup, useSearchGroups };
